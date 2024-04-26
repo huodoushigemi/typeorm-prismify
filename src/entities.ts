@@ -22,7 +22,8 @@ export const Post = new EntitySchema({
   columns: {
     id: { type: 'uuid', primary: true, generated: 'uuid' },
     title: { type: 'varchar' },
-    content: { type: 'varchar', nullable: true, select: false },
+    content: { type: 'varchar', nullable: true },
+    as: { type: 'varchar', nullable: true },
     // user: null,
     // tags: null,
   },

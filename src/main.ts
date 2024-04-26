@@ -24,7 +24,7 @@ const ds = new DataSource({
   type: 'sqljs',
   driver: SQL,
   autoSave: true,
-  logging: ['info', 'log'],
+  logging: ['info', 'log', 'query'],
   location: "example_db",
   useLocalForage: true,
   synchronize: true,
@@ -34,12 +34,12 @@ const ds = new DataSource({
 
 await ds.initialize()
 
-// await ds.manager.upsert(User, { id: '1', name: 'xxxx' }, ['id'])
+// await ds.manager.upsert('user', { id: '1', name: 'xxxx' }, ['id'])
 // await ds.manager.upsert(User, { id: '2', name: 'hhhh' }, ['id'])
 
-// await ds.manager.upsert(Post, { id: '1', title: 'xxx', content: 'content', user: { id: '1' } }, ['id'])
-// await ds.manager.upsert(Post, { id: '2', title: '222', content: 'content', user: { id: '1' } }, ['id'])
-// await ds.manager.upsert(Post, { id: '3', title: '333', content: 'content', user: { id: '1' } }, ['id'])
+// await ds.manager.upsert('post', { id: '1', title: 'xxx', content: 'content', user: { id: '1' } }, ['id'])
+// await ds.manager.upsert('post', { id: '2', title: '222', content: 'content', user: { id: '1' } }, ['id'])
+// await ds.manager.upsert('post', { id: '3', title: '333', content: 'content', user: { id: '2' } }, ['id'])
 // await ds.manager.upsert(Post, { id: '4', title: '444', content: 'content', user: { id: '1' } }, ['id'])
 // await ds.manager.upsert(Post, { id: '5', title: '555', content: 'content', user: { id: '1' } }, ['id'])
 // await ds.manager.upsert(Post, { id: '5ew', title: 'asfr555', content: 'content', user: { id: '2' } }, ['id'])
@@ -47,34 +47,79 @@ await ds.initialize()
 
 // await ds.manager
 
-// await ds.manager.upsert(Tag, { id: '1', name: 'class1', posts: [{ id: '2' }] }, ['id'])
-// await ds.manager.upsert(Tag, { id: '2', name: 'class2', posts: [{ id: '2' }] }, ['id'])
-// await ds.manager.upsert(Tag, { id: '3', name: 'class3', posts: [{ id: 'tag-test', title: 'tag-test', content: 'tag-test' }] }, ['id'])
+// await ds.manager.upsert('tag', { id: '1', name: 'class1', posts: [{ id: '2' }] }, ['id'])
+// await ds.manager.upsert('tag', { id: '2', name: 'class2', posts: [{ id: '2' }] }, ['id'])
+// await ds.manager.upsert('tag', { id: '3', name: 'class3', posts: [{ id: 'tag-test', title: 'tag-test', content: 'tag-test' }] }, ['id'])
 
 // await ds.manager.createQueryBuilder().relation(Post, 'tags').of('1').remove('1')
+// await ds.manager.createQueryBuilder().relation('post', 'tags').of('2').add('1')
 
 
 
 const prisma = new Prisma(ds)
 prisma.from('post', 'post')
 
+console.log(ds.getMetadata('post').findRelationWithPropertyPath('user'));
+
+
 console.log(
   prisma.replacePropertyNamesForTheWholeQuery(
-    prisma.buildWhereExp({
-      // title: {
-      //   contains: '',
-      //   lt: ''
-      // },
-      // user: {
-      //   name: ''
-      // },
-      tags: {
-        some: {
-          name: ''
+    // prisma.buildWhereExp({
+    //   // title: {
+    //   //   contains: '',
+    //   //   lt: ''
+    //   // },
+    //   // user: {
+    //   //   name: ''
+    //   // },
+    //   tags: {
+    //     some: {
+    //       name: ''
+    //     }
+    //   }
+    // })
+    prisma.buildOptions({
+      select: {
+        title: true,
+        as: true,
+        user: true,
+        tags: true
+      },
+      where: {
+        // title: {
+        //   contains: '',
+        //   lt: ''
+        // },
+        // user: {
+        //   name: ''
+        // },
+        tags: {
+          some: {
+            name: ''
+          }
         }
       }
-    })
-  )
+    }).getSql()
+  ),
+  '\n',
+  // await ds.manager.createQueryBuilder()
+  //   .select('post')
+  //   .from('post', 'post')
+  //   // .where({ title: 'x' })
+  //   .getRawMany(),
+  await ds.createQueryBuilder().from('post', 'post').setFindOptions({
+    relationLoadStrategy: 'query',
+    select: {
+      id: true,
+      // tags: true
+      user: true
+    },
+    relations: ['user'],
+    where: {
+
+    }
+  })
+  .getMany()
 )
 
 

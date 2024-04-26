@@ -15,6 +15,7 @@
   "dependencies": {
     "@vue/shared": "^3.4.23",
     "localforage": "^1.10.0",
+    "lodash-es": "^4.17.21",
     "reflect-metadata": "^0.2.2",
     "sql.js": "^1.10.3",
     "typeorm": "^0.3.20"
